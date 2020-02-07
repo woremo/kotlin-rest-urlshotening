@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres:11.5-alpine
+#    expose:
+#      - "5432"
+    ports:
+      - "5432:5432"
+    volumes:
+      - type: volume
+        source: miniurl_db
+        target: /var/lib/postgresql/data/
+#    env_file: .env.db
+#    networks:
+#      - db_net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "widioremo@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+    ports:
+      - "5400:80"
+#    networks:
+#      - hoda_db_net
+    volumes:
+      - type: volume
+        source: pgadmin
+        target: /var/lib/pgadmin
+      - type: volume
+        source: dbservers
+        target: /pgadmin4/servers.json
+#    networks:
+#      - db_net
+
+#networks:
+#  db_net:
+
+volumes:
+  miniurl_db:
+  pgadmin:
+  dbservers:
+
+#
+#  CREATE USER admin WITH PASSWORD 'admin1234';
+#  CREATE DATABASE miniurl_db WITH OWNER admin;

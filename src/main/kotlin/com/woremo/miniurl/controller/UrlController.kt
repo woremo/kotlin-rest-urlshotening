@@ -1,7 +1,9 @@
 package com.woremo.miniurl.controller
 
 import com.woremo.miniurl.model.UrlModel
-import com.woremo.miniurl.model.shortUrl
+import com.woremo.miniurl.model.Url
+import com.woremo.miniurl.model.UrlReqBody
+import com.woremo.miniurl.repo.UrlRepository
 import com.woremo.miniurl.service.UrlShorteningService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -12,35 +14,63 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.toMono
 
 @RestController
+@RequestMapping("/api")
 class UrlController{
 
 
     @Autowired
     lateinit var urlShorteningService: UrlShorteningService
 
-    @GetMapping("/get/{urlHash}")
-    fun getUrl(@PathVariable("urlHash") urlHash: String)= urlShorteningService.getShortUrl(urlHash)
-
-    @GetMapping("/{urlHash}")
-    fun goToUrl(@PathVariable("urlHash") urlHash: String): Flux<String> {
-
-        val urlString  = urlShorteningService.getShortUrl(urlHash).map { it.urlString }
-
-        return urlString
-
-    }
+    @Autowired
+    lateinit var urlRepository: UrlRepository
 
 
-    @PostMapping("/shorten")
-    fun shortenUrl(@RequestBody url: UrlModel) : ResponseEntity<String>{
+    //get all urls
+    @GetMapping("/urls")
+    fun getAllUrls(): MutableIterable<Url> = urlRepository.findAll()
+
+
+    //create a short url
+    @PostMapping("/url/shorten")
+    fun createShortUrl(@RequestBody url: UrlReqBody) : ResponseEntity<Url>{
 
         var urlHash = urlShorteningService.generateUrlHash()
+        var shortUrl = urlShorteningService.SERVER_NAME_API.plus(urlHash)
+        var newUrl : Url? = url.originalUrl?.let { Url(it,urlHash,shortUrl) }
 
+        if (newUrl != null) {
+            urlRepository.save(newUrl)
+        }
 
-        var hash = urlShorteningService.createShortUrl(url, urlHash)
-
-        return ResponseEntity(hash, HttpStatus.CREATED)
+        return ResponseEntity(newUrl, HttpStatus.CREATED)
 
     }
+
+    @GetMapping("/{urlHash}")
+    fun returnOriginalUrl(@PathVariable("urlHash") urlHash: String ) = urlRepository.findByUrlHash(urlHash)
+
+
+    //reasolve a short url
+
+
+    //update a short url
+
+
+    //delete a short url
+
+
+
+
+//    @GetMapping("/get/{urlHash}")
+//    fun getUrl(@PathVariable("urlHash") urlHash: String)= urlShorteningService.getShortUrl(urlHash)
+//
+//    @GetMapping("/{urlHash}")
+//    fun goToUrl(@PathVariable("urlHash") urlHash: String): Flux<String> {
+//
+//        val urlString  = urlShorteningService.getShortUrl(urlHash).map { it.urlString }
+//
+//        return urlString
+//
+//    }
 
 }
