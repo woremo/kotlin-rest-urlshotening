@@ -37,12 +37,13 @@ class UrlController{
         var urlHash = urlShorteningService.generateUrlHash()
         var shortUrl = urlShorteningService.SERVER_NAME_API.plus(urlHash)
         var newUrl : Url? = url.originalUrl?.let { Url(it,urlHash,shortUrl) }
+        var savedUrl: Url? = null
 
         if (newUrl != null) {
-            urlRepository.save(newUrl)
+            savedUrl = urlRepository.save(newUrl)
         }
 
-        return ResponseEntity(newUrl, HttpStatus.CREATED)
+        return ResponseEntity(savedUrl, HttpStatus.CREATED)
 
     }
 
